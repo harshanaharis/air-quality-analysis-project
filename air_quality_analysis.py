@@ -1,4 +1,5 @@
 import pandas as pd
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -136,3 +137,59 @@ importance = pd.Series(rf_model.feature_importances_, index=input_features)
 importance.sort_values().plot(kind='barh')
 plt.title("Feature Importance")
 plt.show()
+
+
+
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR
+from sklearn.metrics import mean_absolute_error
+model1 = LinearRegression()
+model2 = DecisionTreeRegressor(random_state=42)
+model3 = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+model4 = KNeighborsRegressor(n_neighbors=5)
+model5 = SVR(kernel='rbf')
+models = {
+    "Linear Regression": (model1, X_train_scaled, X_test_scaled),
+    "Decision Tree": (model2, X_train, X_test),
+    "Random Forest Regressor": (model3, X_train, X_test),
+    "KNN Regressor": (model4, X_train_scaled, X_test_scaled),
+    "Support Vector Regression": (model5, X_train_scaled, X_test_scaled)
+}
+results = []
+for name, (model, train_data, test_data) in models.items():
+    model.fit(train_data, y_train_r)
+    predictions = model.predict(test_data)
+    mae = mean_absolute_error(y_test_r, predictions)
+    mse = mean_squared_error(y_test_r, predictions)
+    rmse = np.sqrt(mse)
+    r2 = r2_score(y_test_r, predictions)
+    results.append({
+        "Model": name,
+        "MAE": round(mae, 2),
+        "MSE": round(mse, 2),
+        "RMSE": round(rmse, 2),
+        "R2 Score": round(r2, 4)
+    })
+    print("\nModel:", name)
+    print("MAE:", round(mae, 2))
+    print("MSE:", round(mse, 2))
+    print("RMSE:", round(rmse, 2))
+    print("R2 Score:", round(r2, 4))
+results_df = pd.DataFrame(results)
+print("\nMODEL COMPARISON")
+print(results_df.to_string(index=False))
+results_df.to_csv("AQI_Model_Comparison.csv", index=False)
+plt.figure(figsize=(10, 6))
+plt.bar(results_df["Model"], results_df["R2 Score"])
+plt.title("Comparison of Five ML Models")
+plt.xlabel("Machine Learning Models")
+plt.ylabel("R2 Score")
+plt.xticks(rotation=25)
+plt.tight_layout()
+plt.show()
+best_model = results_df.loc[results_df["R2 Score"].idxmax()]
+print("\nBest Model:", best_model["Model"])
+print("Best R2 Score:", best_model["R2 Score"])
+print("Best RMSE:", best_model["RMSE"])
